@@ -12,7 +12,7 @@ def app():
 
     # Fetch cases under investigation
     under_review = fetch_data(
-        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS = 'UNDER INVESTIGATION'"
+        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS = 'Closed'"
     )
 
     if not under_review:

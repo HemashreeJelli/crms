@@ -2,8 +2,8 @@ import oracledb
 import streamlit as st
 
 # --- Oracle Connection Configuration ---
-DB_USER = "system"
-DB_PASSWORD = ""  # your password
+DB_USER = "police_system"
+DB_PASSWORD = "Police123#"  # your password
 DB_DSN = "localhost:1521/XEPDB1"  # ✅ connect to correct PDB
 
 
@@ -102,3 +102,18 @@ def check_tables_exist():
     except Exception as e:
         st.error(f"❌ Error checking tables: {e}")
         return False
+    
+if __name__ == "__main__":
+    st.title("🚓 Crime Management System - DB Connectivity Test")
+
+    connected = get_connection()
+
+    if connected:
+        st.success("✅ Connected to Oracle Database!")
+        
+        if check_tables_exist():
+            st.success("✅ All required tables exist!")
+        else:
+            st.warning("⚠️ Some required tables are missing.")
+    else:
+        st.error("❌ Could not connect to database.")

@@ -13,7 +13,7 @@ def app():
         return
     
     # Fetch all open (non-closed) cases
-    cases = fetch_data("SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS != 'CLOSED'")
+    cases = fetch_data("SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS != 'Closed'")
 
     if not cases:
         st.info("NO OPEN CASES AVAILABLE.")

@@ -12,7 +12,7 @@ def app():
 
     # Fetch all currently assigned cases
     active_cases = fetch_data(
-        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS = 'ASSIGNED'"
+        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS = 'Under Investigation'"
     )
 
     if not active_cases:
