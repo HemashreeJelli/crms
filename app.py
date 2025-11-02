@@ -6,7 +6,8 @@ from modules import (
     investigation,
     case_closure,
     reports,
-    evidence_upload
+    evidence_upload,
+    Report
 )
 import utils.session_state as session_state
 
@@ -16,8 +17,8 @@ session_state.init_session_state()
 with st.sidebar:
     selected = option_menu(
         "CRIME RECORD SYSTEM",
-        ["Complaint Registration", "Case Assignment", "Investigation", "Case Closure", "Reports", "Evidence Upload"],  # 👈 added
-        icons=["pencil", "person-badge", "search", "check2-circle", "bar-chart", "upload"],
+        ["Complaint Registration", "Case Assignment", "Investigation", "Case Closure", "Reports", "Evidence Upload","Report"],  # 👈 added
+        icons=["pencil", "person-badge", "search", "check2-circle", "bar-chart", "upload","file-earmark"],
         menu_icon="shield-lock",
         default_index=0,
     )
@@ -34,3 +35,5 @@ elif selected == "Reports":
     reports.app()
 elif selected=="Evidence Upload":
     evidence_upload.app()
+elif selected == "Report":
+    Report.app()
