@@ -1,40 +1,56 @@
 import streamlit as st
+import time
 from db_connection import get_connection, fetch_data, execute_query
 
 def app():
     st.title("👮 CASE ASSIGNMENT")
 
-    # First, check if tables exist
     from db_connection import check_tables_exist
     if not check_tables_exist():
         st.error("❌ REQUIRED DATABASE TABLES ARE MISSING. Please run the SQL setup script first.")
         return
 
-    # Establish DB connection
     conn = get_connection()
     if not conn:
         st.error("❌ DATABASE CONNECTION FAILED.")
         return
 
     try:
-        # Fetch unassigned cases with better error handling
+        # ✅ Show Reported + Assigned
         cases = fetch_data(
-            "SELECT CASE_ID, CASE_TITLE, STATUS FROM CASE_TABLE WHERE STATUS = 'Reported'"
+            "SELECT CASE_ID, CASE_TITLE, STATUS FROM CASE_TABLE WHERE STATUS IN ('Reported')"
         )
 
         if not cases:
             st.info("✅ NO UNASSIGNED CASES.")
             return
 
-        # Fetch available CID officers for assignment
+        # ✅ Search box with key to retain value
+        search_query = st.text_input("🔍 Search Case (ID / Title)", key="case_search").lower()
+
+        # Filter cases by search query
+        filtered_cases = [
+            case for case in cases
+            if search_query in case['CASE_ID'].lower()
+            or search_query in case['CASE_TITLE'].lower()
+        ]
+
+        if not filtered_cases:
+            st.warning("No matching cases found.")
+            return
+
         cid_officers = fetch_data(
             "SELECT STAFFID, SURNAME, OTHERNAMES FROM USERLOGIN WHERE ROLE = 'CID' AND IS_ACTIVE = 1"
         )
         
         officer_options = {f"{o['STAFFID']} - {o['SURNAME']}, {o['OTHERNAMES']}": o['STAFFID'] for o in cid_officers}
 
-        for case in cases:
+        for case in filtered_cases:
             with st.expander(f"{case['CASE_ID']} - {case['CASE_TITLE']}"):
+
+                # ✅ show status inside expander
+                st.write(f"📌 Current Status: **{case['STATUS']}**")
+
                 if not officer_options:
                     st.warning("No CID officers available for assignment")
                     continue
@@ -59,7 +75,6 @@ def app():
                         return
 
                     try:
-                        # Update CASE_TABLE
                         update_success = execute_query(
                             """
                             UPDATE CASE_TABLE
@@ -73,7 +88,6 @@ def app():
                         )
 
                         if update_success:
-                            # Insert into CASE_ASSIGNMENT_HISTORY
                             history_success = execute_query(
                                 """
                                 INSERT INTO CASE_ASSIGNMENT_HISTORY
@@ -84,10 +98,25 @@ def app():
                             )
 
                             if history_success:
-                                st.success(f"✅ CASE {case['CASE_ID']} ASSIGNED TO {selected_officer}")
-                                st.rerun()  # Refresh the page to show updated list
+                                # show message
+                                msg = st.empty()
+                                msg.success(f"✅ CASE {case['CASE_ID']} ASSIGNED TO {selected_officer}")
+
+                                time.sleep(3)
+
+                                # clear message
+                                msg.empty()
+
+                                # ❌ clear search bar
+                                st.session_state.pop("case_search", None)
+
+
+                                # 🔁 refresh screen
+                                st.rerun()
+
                             else:
                                 st.error("❌ Failed to record assignment history")
+
                         else:
                             st.error("❌ Failed to update case assignment")
 

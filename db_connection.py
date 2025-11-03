@@ -82,10 +82,10 @@ def check_tables_exist():
         """
         existing_tables = fetch_data(tables_query)
         
-        st.write("📋 **Existing Tables:**")
-        for table in existing_tables:
-            st.write(f"✅ {table['TABLE_NAME']}")
-            
+        #st.write("📋 **Existing Tables:**")
+        #for table in existing_tables:
+        #    st.write(f"✅ {table['TABLE_NAME']}")
+
         required_tables = ['CASE_TABLE', 'COMPLAINANT', 'CRIME_TYPE', 'USERLOGIN']
         missing_tables = []
         

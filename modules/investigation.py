@@ -12,14 +12,28 @@ def app():
 
     # Fetch all currently assigned cases
     active_cases = fetch_data(
-        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS = 'Under Investigation'"
+        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS IN ('Under Investigation', 'Assigned')"
     )
 
     if not active_cases:
         st.info("NO ACTIVE CASES UNDER INVESTIGATION.")
         return
 
-    for case in active_cases:
+    # 🔎 NEW SEARCH BAR
+    search_query = st.text_input("🔍 Search Case (ID / Title)").lower()
+
+    # Filter results
+    filtered_cases = [
+        c for c in active_cases
+        if search_query in c['CASE_ID'].lower() or search_query in c['CASE_TITLE'].lower()
+    ]
+
+    if not filtered_cases:
+        st.warning("No matching cases found.")
+        return
+
+    # Display filtered list
+    for case in filtered_cases:
         with st.expander(f"{case['CASE_ID']} - {case['CASE_TITLE']}"):
             officer_id = st.text_input(
                 f"CID OFFICER STAFF ID FOR {case['CASE_ID']}",
@@ -27,7 +41,7 @@ def app():
             )
             itype = st.selectbox(
                 f"INVESTIGATION TYPE FOR {case['CASE_ID']}",
-                ["INITIAL", "FOLLOW-UP", "EVIDENCE COLLECTION", "INTERVIEW", "FINAL REPORT"],
+                ["Initial", "Follow-up", "Evidence Collection", "Interview", "Final Report"],
                 key=f"type_{case['CASE_ID']}"
             )
             note = st.text_area(

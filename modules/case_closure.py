@@ -10,17 +10,32 @@ def app():
         st.error("❌ FAILED TO CONNECT TO ORACLE DATABASE.")
         return
 
-    # Fetch cases under investigation
+    # Fetch cases eligible for closure
     under_review = fetch_data(
-        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS = 'Closed'"
+        "SELECT CASE_ID, CASE_TITLE FROM CASE_TABLE WHERE STATUS IN ('Assigned', 'Under Investigation')"
     )
 
     if not under_review:
         st.info("NO CASES READY FOR CLOSURE.")
         return
 
-    for c in under_review:
+    # 🔍 SEARCH BAR
+    search_query = st.text_input("Search Case (ID / Title)").lower()
+
+    # Filter results
+    filtered_cases = [
+        c for c in under_review
+        if search_query in c['CASE_ID'].lower() or search_query in c['CASE_TITLE'].lower()
+    ]
+
+    if not filtered_cases:
+        st.warning("No matching cases found.")
+        return
+
+    # Display filtered expandable cases
+    for c in filtered_cases:
         with st.expander(f"{c['CASE_ID']} - {c['CASE_TITLE']}"):
+            
             notes = st.text_area(
                 f"CLOSURE NOTES FOR CASE {c['CASE_ID']}",
                 key=f"notes_{c['CASE_ID']}"
@@ -32,7 +47,7 @@ def app():
                     execute_query(
                         """
                         UPDATE CASE_TABLE
-                        SET STATUS = 'CLOSED',
+                        SET STATUS = 'Closed',
                             CLOSED_AT = SYSTIMESTAMP
                         WHERE CASE_ID = :1
                         """,
@@ -40,6 +55,9 @@ def app():
                     )
 
                     st.success(f"✅ CASE {c['CASE_ID']} CLOSED SUCCESSFULLY.")
+
+                    # 🔁 Trick: rerun so closed case disappears from UI
+                    st.rerun()
 
                 except Exception as e:
                     st.error(f"❌ FAILED TO CLOSE CASE {c['CASE_ID']}: {e}")
